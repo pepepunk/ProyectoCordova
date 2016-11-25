@@ -28,27 +28,27 @@
             * Disables use of inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
                 * Enable inline JS: add 'unsafe-inline' to default-src
         -->
-        <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *; img-src 'self' data: content:;">
-        <meta name="format-detection" content="telephone=no">
-        <meta name="msapplication-tap-highlight" content="no">
-        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+       
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Esta aplicación sirve para almacenar datos en una BD.">
         <link rel="stylesheet" type="text/css" href="css/index.css">
         <title>Hello World</title>
 
         <script src="js/jquery-1.11.3.min.js"></script>
          <script src="js/jquery.mobile-1.4.5.min.js"></script>
         <script src="cordova.js"></script>
-           <script src="js/ui.js"></script>
+           
         <script type="text/javascript">
             // Wait for Cordova to load
         //
         document.addEventListener("deviceready", onDeviceReady, false);
-        var currentRow;
+        
         // Creando las tablas de la base de datos
         //
         function populateDB(tx) {
+            alert("Se ha creado la tabla!");
             
-                tx.executeSql('CREATE TABLE IF NOT EXISTS candidatos (id_candidato INTEGER PRIMARY KEY AUTOINCREMENT, nombre,apellido, INTEGER num_de_votos)');
+                tx.executeSql('CREATE TABLE IF NOT EXISTS candidatos (id_candidato INTEGER PRIMARY KEY AUTOINCREMENT, nombre , apellido , num_de_votos INTEGER)');
 
                 tx.executeSql('SELECT * FROM candidatos', [], querySuccess, errorCB);
 
@@ -58,7 +58,7 @@
         }
 
         function querySuccess(tx, results) {
-            var tblText='<table id="t01"><tr><th>ID</th><th>Nombre</th><th>apellido</th></tr>';
+            var tblText='<table id="t01"><tr><th>ID</th><th>Nombre</th><th>Apellido</th></tr>';
             var len = results.rows.length;
             if (len==0){
                 alert("Entró");
@@ -67,6 +67,7 @@
                 var tmpArgs=results.rows.item(i).id_candidato + ",'" + 
                             results.rows.item(i).nombre+ "','" + 
                             results.rows.item(i).apellido+"'";
+                            tblText +='<tr><td>' + results.rows.item(i).id_candidato +'</td><td>' + results.rows.item(i).nombre +'</td><td>' + results.rows.item(i).apellido +'</td></tr>';
                             
                             
             }
@@ -94,7 +95,7 @@
             //Insert query
         //
         function insertDB(tx) {
-            tx.executeSql('INSERT INTO candidatos (nombre,apellido,num_de_votos) VALUES ("' +document.getElementById("txtName").value+'","'+document.getElementById("txtNumber").value+'")');
+            tx.executeSql('INSERT INTO candidatos (nombre,apellido,num_de_votos) VALUES ("' +document.getElementById("txtNombre").value+'","'+document.getElementById("txtApellido").value+'",0)');
             }
         function goInsert() {
             var db = window.openDatabase("Database", "1.0", "Database", 100000);
@@ -109,7 +110,7 @@
             db.transaction(resultsDB, errorCB, successCB);
         }
         function votarDB(tx){
-            tx.executeSql("UPDATE candidatos SET num_de_votos=num_de_votos+1 WHERE nombre="'+document.getElementById("nombreVoto").value+'" and apellido='"+document.getElementById("apellidoVoto").value+ "'", [], queryDB, errorCB);
+            tx.executeSql('UPDATE candidatos SET num_de_votos=num_de_votos+1 WHERE nombre="'+document.getElementById("nombreVoto").value+'" and apellido="'+document.getElementById("apellidoVoto").value+"'", [], queryDB, errorCB);
         } 
         function goVotar() {
             var db = window.openDatabase("Database", "1.0", "Database", 100000);
@@ -127,7 +128,7 @@
       <fieldset data-role="collapsible" data-theme="a" data-content-theme="a">
         <legend>Canndidatos</legend>
          <div>
-                Nombre del candidato<input type="text" id="txtName">
+                Nombre del candidato<input type="text" id="txtNombre">
                 Apellido del candidato<input type="text" id="txtApellido">
     <hr/>
     </div>
@@ -151,4 +152,5 @@
    
    
     </body>
+    <script src="js/ui.js"></script>
 </html>
