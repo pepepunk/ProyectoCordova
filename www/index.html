@@ -39,9 +39,8 @@
          <script src="js/jquery.mobile-1.4.5.min.js"></script>
         <script src="cordova.js"></script>
            <script src="js/ui.js"></script>
-        <script type="text/javascript" charset="utf-8">
-
-        // Wait for Cordova to load
+        <script type="text/javascript">
+            // Wait for Cordova to load
         //
         document.addEventListener("deviceready", onDeviceReady, false);
         var currentRow;
@@ -49,33 +48,32 @@
         //
         function populateDB(tx) {
             
-tx.executeSql('CREATE TABLE IF NOT EXISTS candidatos (id_candidato INTEGER PRIMARY KEY AUTOINCREMENT, nombre, num_de_votos)');
+                tx.executeSql('CREATE TABLE IF NOT EXISTS candidatos (id_candidato INTEGER PRIMARY KEY AUTOINCREMENT, nombre,apellido, INTEGER num_de_votos)');
 
-tx.executeSql('SELECT * FROM candidatos', [], querySuccess, errorCB);
+                tx.executeSql('SELECT * FROM candidatos', [], querySuccess, errorCB);
 
-            }
-            function queryDB(tx) {
+        }
+        function queryDB(tx) {
             tx.executeSql('SELECT * FROM candidatos', [], querySuccess, errorCB);
-            }
-            function querySuccess(tx, results) {
-            var tblText='<table id="t01"><tr><th>ID</th> <th>Nombre</th><th><button>Votar por candidato</></th></tr>';
+        }
+
+        function querySuccess(tx, results) {
+            var tblText='<table id="t01"><tr><th>ID</th><th>Nombre</th><th>apellido</th></tr>';
             var len = results.rows.length;
             if (len==0){
                 alert("Entró");
             }
             for (var i = 0; i < len; i++) {
-                var tmpArgs=results.rows.item(i).id_platillo + ",'" + 
+                var tmpArgs=results.rows.item(i).id_candidato + ",'" + 
                             results.rows.item(i).nombre+ "','" + 
-                            results.rows.item(i).tporcion+"'";
-                            tblText +=
-                            '<tr onclick="goPopup('+ tmpArgs + ');">'
-                                '<td>' + results.rows.item(i).id_candidato +'</td>'+
-                                '<td>' + results.rows.item(i).nombre +'</td>'+
-                            '</tr>';
-                }
-                tblText +="</table>";
-                document.getElementById("tblDiv").innerHTML =tblText;
+                            results.rows.item(i).apellido+"'";
+                            
+                            
+            }
+            tblText +="</table>";
+            document.getElementById("tblDiv").innerHTML =tblText;
         }
+
         function errorCB(err) {
             alert("Error processing SQL: "+err.code);
         }
@@ -96,24 +94,32 @@ tx.executeSql('SELECT * FROM candidatos', [], querySuccess, errorCB);
             //Insert query
         //
         function insertDB(tx) {
-tx.executeSql('INSERT INTO candidatos (nombre,num_de_votos) VALUES ("' +document.getElementById("txtName").value+'","'+document.getElementById("txtNumber").value+'")');
+            tx.executeSql('INSERT INTO candidatos (nombre,apellido,num_de_votos) VALUES ("' +document.getElementById("txtName").value+'","'+document.getElementById("txtNumber").value+'")');
             }
-            function goInsert() {
-                var db = window.openDatabase("Database", "1.0", "Database", 100000);
-                db.transaction(insertDB, errorCB, successCB);
-                }
-                function goResults 
-function goPopup(row,rowname,rownum) {
-            currentRow=row;
-            document.getElementById("qrpopup").style.display="block";
-            document.getElementById("editNameBox").value = rowname;
-            document.getElementById("editNumberBox").value = rownum;
+        function goInsert() {
+            var db = window.openDatabase("Database", "1.0", "Database", 100000);
+            db.transaction(insertDB, errorCB, successCB);
         }
-            </script>
+        
+        function resultsDB(tx){
+            tx.executeSql('SELECT nombre, apellido, MAX(num_de_votos) FROM candidatos')
+        } 
+        function goResults() {
+            var db = window.openDatabase("Database", "1.0", "Database", 100000);
+            db.transaction(resultsDB, errorCB, successCB);
+        }
+        function votarDB(tx){
+            tx.executeSql("UPDATE candidatos SET num_de_votos=num_de_votos+1 WHERE nombre="'+document.getElementById("nombreVoto").value+'" and apellido='"+document.getElementById("apellidoVoto").value+ "'", [], queryDB, errorCB);
+        } 
+        function goVotar() {
+            var db = window.openDatabase("Database", "1.0", "Database", 100000);
+            db.transaction(votarDB, errorCB, successCB);
+        }
+        </script>
     </head>
     <body>
      <div data-role="header">
-  <h1>Registro de candidatos</h1>
+  <h1>Registro de candidatos y votación</h1>
   </div>
     
     <div data-role="main" class="ui-content">
@@ -121,18 +127,24 @@ function goPopup(row,rowname,rownum) {
       <fieldset data-role="collapsible" data-theme="a" data-content-theme="a">
         <legend>Canndidatos</legend>
          <div>
-    Nombre del candidato<input type="text" id="txtName">
-    Grupo<input type="text" id="txtGrupo">
+                Nombre del candidato<input type="text" id="txtName">
+                Apellido del candidato<input type="text" id="txtApellido">
     <hr/>
     </div>
     <div id="tblDiv"></div>
     <div style="text-align: center">
-    <button onClick="goInsert();">Insertar</button>
+    <button onClick="goInsert();">Insertar candidato</button>
     <button onClick="goResults();">Resultados</button>
+    
+
     
     
     </div>
-         
+         <div>
+             Nombre del candidato a votar<input type="text" id="nombreVoto">
+             Apellido del candidato a votar<input type="text" id="apellidoVoto">
+             <button onClick="goVotar();">Votar por</button>
+         </div>
       </fieldset>
     
   </div>
