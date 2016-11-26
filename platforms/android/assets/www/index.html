@@ -30,13 +30,18 @@
         -->
        
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Esta aplicación sirve para almacenar datos en una BD.">
+        <meta name="description" content="Esta aplicación sirve para almacenar datos en una BD.">
         <link rel="stylesheet" type="text/css" href="css/index.css">
-        <title>Hello World</title>
+        <title>Registro Candidatos</title>
 
+        <link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css">
+        
+        <!--  <link rel="stylesheet" href="css/personalizado.css">-->
         <script src="js/jquery-1.11.3.min.js"></script>
          <script src="js/jquery.mobile-1.4.5.min.js"></script>
         <script src="cordova.js"></script>
+            <link rel="stylesheet" type="text/css" href="css/tablecloth.css">
+            <script src="js/tablecloth.js"></script>
            
         <script type="text/javascript">
             // Wait for Cordova to load
@@ -46,7 +51,7 @@
         // Creando las tablas de la base de datos
         //
         function populateDB(tx) {
-            alert("Se ha creado la tabla!");
+            
             
                 tx.executeSql('CREATE TABLE IF NOT EXISTS candidatos (id_candidato INTEGER PRIMARY KEY AUTOINCREMENT, nombre , apellido , num_de_votos INTEGER)');
 
@@ -58,18 +63,16 @@
         }
 
         function querySuccess(tx, results) {
-            var tblText='<table id="t01"><tr><th>ID</th><th>Nombre</th><th>Apellido</th></tr>';
+            var tblText='<table id="t01"><tr><th>ID</th><th colspan="2">Nombre</th><th colspan="2">Apellido</th></tr>';
             var len = results.rows.length;
             if (len==0){
-                alert("Entró");
+                
             }
             for (var i = 0; i < len; i++) {
                 var tmpArgs=results.rows.item(i).id_candidato + ",'" + 
                             results.rows.item(i).nombre+ "','" + 
                             results.rows.item(i).apellido+"'";
-                            tblText +='<tr><td>' + results.rows.item(i).id_candidato +'</td><td>' + results.rows.item(i).nombre +'</td><td>' + results.rows.item(i).apellido +'</td></tr>';
-                            
-                            
+                            tblText +='<tr><td >' + results.rows.item(i).id_candidato +'</td><td colspan="2">' + results.rows.item(i).nombre +'</td><td colspan="2">' + results.rows.item(i).apellido +'</td></tr>';                            
             }
             tblText +="</table>";
             document.getElementById("tblDiv").innerHTML =tblText;
@@ -85,9 +88,10 @@
             //sqlitePlugin.openDatabase
             var db = window.openDatabase("Database", "1.0", "Database", 100000);
             db.transaction(queryDB, errorCB);
-            }
+        }
             // Cordova is ready
         //
+        
         function onDeviceReady() {
             var db = window.openDatabase("Database", "1.0", "Database", 100000);
             db.transaction(populateDB, errorCB, successCB);
@@ -95,62 +99,112 @@
             //Insert query
         //
         function insertDB(tx) {
-            tx.executeSql('INSERT INTO candidatos (nombre,apellido,num_de_votos) VALUES ("' +document.getElementById("txtNombre").value+'","'+document.getElementById("txtApellido").value+'",0)');
+            if (document.getElementById("txtNombre").value=="") {
+                alert("Nombre Requerido");
+            }
+            else if (document.getElementById("txtApellido").value=="") {
+                alert("Apellido Requerido");
+            }
+            else if (document.getElementById("txtApellido").value==""&&document.getElementById("txtNombre").value=="") {
+                alert("Apellido y Nombre Requeridos");
+            }
+            else{
+                tx.executeSql('INSERT INTO candidatos (nombre,apellido,num_de_votos) VALUES ("' +document.getElementById("txtNombre").value+'","'+document.getElementById("txtApellido").value+'",0)');
+                alert("Candidato registrado en el sistema.");
+                document.getElementById("txtApellido").value="";
+                document.getElementById("txtNombre").value="";
+            }
+
+            
             }
         function goInsert() {
             var db = window.openDatabase("Database", "1.0", "Database", 100000);
             db.transaction(insertDB, errorCB, successCB);
         }
         
-        function resultsDB(tx){
-            tx.executeSql('SELECT nombre, apellido, MAX(num_de_votos) FROM candidatos')
-        } 
-        function goResults() {
-            var db = window.openDatabase("Database", "1.0", "Database", 100000);
-            db.transaction(resultsDB, errorCB, successCB);
-        }
+        
         function votarDB(tx){
-            tx.executeSql('UPDATE candidatos SET num_de_votos=num_de_votos+1 WHERE nombre="'+document.getElementById("nombreVoto").value+'" and apellido="'+document.getElementById("apellidoVoto").value+ "'", [], queryDB, errorCB);
+            if (document.getElementById("idVoto").value=="") {
+                alert("Ingrese el ID de un candidato para poder votar.");
+            }
+
+            else{
+            tx.executeSql('UPDATE candidatos SET num_de_votos=num_de_votos+1 WHERE id_candidato='+document.getElementById("idVoto").value);
+            alert("Gracias por su voto.");
+            document.getElementById("idVoto").value="";
+        }
         } 
         function goVotar() {
             var db = window.openDatabase("Database", "1.0", "Database", 100000);
             db.transaction(votarDB, errorCB, successCB);
+
         }
+        function queryDB2(tx)
+        {
+            tx.executeSql('SELECT nombre, apellido, MAX(num_de_votos) AS votosGanador FROM candidatos',[],querySuccess2,errorCB);
+
+        }
+        function successCB2() {
+            
+            //sqlitePlugin.openDatabase
+            var db = window.openDatabase("Database", "1.0", "Database", 100000);
+            db.transaction(queryDB2, errorCB);
+        }
+        
+        function querySuccess2(tx, results){
+            
+            var nombreG=results.rows.item(0).nombre;
+            var apellidoG=results.rows.item(0).apellido;
+            var votosG=results.rows.item(0).votosGanador;
+            
+            var mensajeG="Ganador: "+nombreG+" "+apellidoG+"\nVotos obtenidos: "+votosG;
+            alert(mensajeG);
+        } 
+        
         </script>
     </head>
     <body>
-     <div data-role="header">
-  <h1>Registro de candidatos y votación</h1>
-  </div>
+        <div data-role="header">
+            <h1>Registro de candidatos y votación</h1>
+        </div>
     
-    <div data-role="main" class="ui-content">
+    <div data-role="main" >
    
-      <fieldset data-role="collapsible" data-theme="a" data-content-theme="a">
-        <legend>Canndidatos</legend>
-         <div>
-                Nombre del candidato<input type="text" id="txtNombre">
-                Apellido del candidato<input type="text" id="txtApellido">
+    <fieldset data-role="collapsible" data-theme="a" data-content-theme="a">
+        <legend>Registro de Candidatos</legend>
+            <form>  
+                <div id="insertar" >
+                Nombre del candidato<input type="text" id="txtNombre" class="textbox">
+                Apellido del candidato<input type="text" id="txtApellido" class="textbox">
+                
+                <a href="" onclick="goInsert();" class="boton insertar" style="color: white;">Registrar Candidato</a>
+                <a class="boton resultados" href="#"  onclick="successCB2();" style="color: white;">Resultados</a>
+                    
+                </div>
+            </form>
+    </fieldset>
     <hr/>
-    </div>
-    <div id="tblDiv"></div>
-    <div style="text-align: center">
-    <button onClick="goInsert();">Insertar candidato</button>
-    <button onClick="goResults();">Resultados</button>
-    
 
-    
-    
+    <fieldset data-role="collapsible" data-theme="a" data-content-theme="a">
+        <legend>Votación</legend>
+        <form>
+            <div id="votar">
+             ID de candidato<input type="text" id="idVoto" class="textbox">
+             
+             <a class="boton votacion" href="#" onclick="goVotar();" style="color: white;">Votar por</a>
+            </div>
+         </form>
+    </fieldset>
+    <hr/>
+
+    <fieldset data-role="collapsible" data-theme="a" data-content-theme="a">
+        <legend>Canndidatos Actuales</legend>
+        <div id="tblDiv"></div>
+        
+         
+    </fieldset>
     </div>
-         <div>
-             Nombre del candidato a votar<input type="text" id="nombreVoto">
-             Apellido del candidato a votar<input type="text" id="apellidoVoto">
-             <button onClick="goVotar();">Votar por</button>
-         </div>
-      </fieldset>
-    
-  </div>
-   
-   
+     
     </body>
     <script src="js/ui.js"></script>
 </html>
